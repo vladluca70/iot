@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Termostat Web App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(to bottom, #cce5ff, #f0f0f0);
+      transition: background 1s ease;
+    }
+
+    .thermostat {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px 40px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.15);
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .temperature {
+      font-size: 4em;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px rgba(0,0,0,0.2);
+      transition: color 0.5s, text-shadow 0.5s;
+    }
+
+    .temperature.hot {
+      color: red;
+      text-shadow: 0 0 15px red;
+    }
+
+    .temperature.cold {
+      color: #007bff;
+      text-shadow: 0 0 15px #007bff;
+    }
+
+    .speaker {
+      width: 80px;
+      height: 80px;
+      background: #222;
+      border-radius: 50%;
+      position: relative;
+      margin: 20px auto;
+      transition: box-shadow 0.3s ease-in-out;
+    }
+
+    .speaker::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .ringing {
+      box-shadow: 0 0 25px 10px red;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px 5px red; }
+      50% { box-shadow: 0 0 30px 15px red; }
+      100% { box-shadow: 0 0 10px 5px red; }
+    }
+
+    .status-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin: 10px auto;
+    }
+
+    .window {
+      width: 60px;
+      height: 30px;
+      background: #aaa;
+      margin: 20px auto;
+      transform-origin: left center;
+      transition: transform 0.6s ease-in-out;
+      border-radius: 4px;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="thermostat">
+    <div class="temperature" id="temperature">--°C</div>
+    <div class="speaker" id="speaker"></div>
+    <div class="status-dot" id="statusDot"></div>
+    <div class="window" id="window"></div>
+  </div>
+
+  <audio id="alertSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+
+  <script>
+    const temperatures = Array.from({ length: 10 }, () => Math.floor(Math.random() * 16) + 15);
+    let index = 0;
+
+    function updateUI(temp) {
+      const tempDisplay = document.getElementById('temperature');
+      const speaker = document.getElementById('speaker');
+      const dot = document.getElementById('statusDot');
+      const win = document.getElementById('window');
+      const alertSound = document.getElementById('alertSound');
+
+      tempDisplay.textContent = `${temp}°C`;
+      tempDisplay.classList.remove("hot", "cold");
+
+      // Temperatură joasă sau mare = alertă
+      if (temp < 18 || temp > 25) {
+        speaker.classList.add('ringing');
+        alertSound.play();
+
+        if (temp < 18) {
+          tempDisplay.classList.add("cold");
+        } else {
+          tempDisplay.classList.add("hot");
+        }
+      } else {
+        speaker.classList.remove('ringing');
+      }
+
+      // Schimbă punctul de stare
+      if (temp < 18) {
+        dot.style.backgroundColor = 'blue';
+      } else if (temp > 25) {
+        dot.style.backgroundColor = 'red';
+      } else {
+        dot.style.backgroundColor = 'green';
+      }
+
+      // Animație fereastră
+      if (temp < 18) {
+        win.style.transform = 'rotate(0deg)';
+        document.body.style.background = 'linear-gradient(to bottom, #99ccff, #e6f2ff)';
+      } else if (temp > 25) {
+        win.style.transform = 'rotate(90deg)';
+        document.body.style.background = 'linear-gradient(to bottom, #ffcccc, #ffe6e6)';
+      } else {
+        win.style.transform = 'rotate(45deg)';
+        document.body.style.background = 'linear-gradient(to bottom, #d4f4dd, #f0fff4)';
+      }
+    }
+
+    function startThermostat() {
+      setInterval(() => {
+        updateUI(temperatures[index]);
+        index = (index + 1) % temperatures.length;
+      }, 2000);
+    }
+
+    startThermostat();
+  </script>
+</body>
+</html>
